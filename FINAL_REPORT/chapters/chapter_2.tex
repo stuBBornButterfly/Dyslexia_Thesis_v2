@@ -1,0 +1,269 @@
+\section{Preliminaries}
+
+This chapter reviews the body of work on which the thesis builds. It is organised in three parts. The \emph{Preliminaries} introduce the cognitive science of dyslexia, the linguistic notion of orthographic depth, the architecture of multilingual large language models (LLMs), and the interpretability methods (probing, representational similarity analysis and causal ablation) that the thesis applies. The \emph{Review of Existing Research} surveys the empirical literature on cross-lingual transfer, phonological probing, automated dyslexia screening and mechanistic interpretability, and closes by positioning the thesis against this literature along six dimensions to make the research gap explicit. The \emph{Summary of Key Findings} distils the three observations from prior work that motivate the experiments of Chapters~4 and~5.
+
+\subsection{Developmental dyslexia: definition, prevalence and diagnostic criteria}
+
+Developmental dyslexia is a specific learning difficulty of neurobiological origin, characterised by unexpected difficulty in accurate or fluent word recognition and by poor spelling and decoding, despite adequate instruction, intelligence and sensory acuity \cite{lyon2003definition,snowling2020dyslexia,peterson2012developmental}. The widely cited consensus definition of Lyon, Shaywitz and Shaywitz \cite{lyon2003definition} frames these difficulties as a consequence of a deficit in the phonological component of language, and stresses that the difficulty is \emph{unexpected} relative to other cognitive abilities. Vellutino and colleagues, in their four-decade review of specific reading disability \cite{vellutino2004specific}, reinforce this view and argue against earlier perceptual and visual accounts, locating the core impairment in language rather than in vision.
+
+Estimates of prevalence vary with the language, the severity threshold and the cut-off convention adopted, but reading difficulty consistent with dyslexia is commonly reported in a substantial minority of school-age children \cite{vellutino2004specific,wagner2020prevalence}. Wagner and colleagues \cite{wagner2020prevalence} note that prevalence figures are highly sensitive to the operational definition used, which complicates cross-study and cross-language comparison. Diagnosis in clinical practice rests on standardised batteries that contrast reading and reading-related skills against age and grade norms; the absence of such norms for many languages, including Bangla, is itself a barrier to identification and is one of the motivations for the present work.
+
+\subsection{The phonological deficit hypothesis and competing accounts}
+
+The most strongly supported cognitive account of dyslexia is the \emph{phonological deficit hypothesis}: dyslexic readers under-represent or slowly access the speech-sound structure of language, which compromises the learning of grapheme-to-phoneme correspondences and slows reading acquisition \cite{snowling2020dyslexia,goswami2011temporal,wagner1987nature}. Wagner and Torgesen \cite{wagner1987nature} laid early groundwork by showing that phonological processing abilities are causally implicated in the acquisition of reading skills rather than being a mere by-product of reading experience. Share \cite{share1995phonological} extended this into the self-teaching hypothesis, in which phonological recoding is the mechanism by which children build up orthographic knowledge: each successful decoding of a novel word provides an opportunity to learn its spelling, so a phonological weakness compounds over time into an orthographic one.
+
+The phonological account is not the only one on offer. Ramus and colleagues \cite{ramus2003theories}, in a multiple-case study of dyslexic adults, evaluate the phonological theory alongside auditory, visual-magnocellular and cerebellar theories, and conclude that a phonological deficit is present in the great majority of cases, while sensorimotor difficulties, where they occur, are neither necessary nor sufficient to explain the reading impairment. The temporal-processing account of Goswami \cite{goswami2011temporal} situates the phonological deficit within a broader difficulty in tracking the temporal structure of the speech signal, linking low-level auditory rhythm perception to the development of phonological representations. For the purposes of this thesis the relevant point is that, across these competing accounts, phonological representation is the common locus of impairment, which is why a study that asks whether language models encode phonological structure is well aligned with the dominant theory of the disorder.
+
+\subsection{Subdomains of phonological processing and their clinical assessment}
+
+Phonological processing is conventionally decomposed into three subdomains \cite{wagner2013ctopp,kirby2010ran,wagner1987nature}. \emph{Phonological awareness} is the ability to detect and manipulate sound units such as phonemes, syllables and rhymes. \emph{Phonological short-term memory} is the ability to hold sound sequences in working memory, as probed by non-word repetition and digit-span tasks. \emph{Rapid automatised naming} (RAN) is the speed of retrieving phonological codes for visually presented stimuli such as letters, digits, colours or objects; Kirby and colleagues \cite{kirby2010ran} review the predictive relationship between naming speed and later reading and discuss its instructional implications.
+
+These subdomains are operationalised in standardised clinical batteries. The Comprehensive Test of Phonological Processing (CTOPP-2) is the dominant instrument for English \cite{wagner2013ctopp}, probing awareness, memory and naming with subtests built from real words, pseudo-words, sound blending and elision. For South-Asian languages, Nag and colleagues \cite{nag2014dyslexia,nag2017indian} have argued that assessment cannot simply be transplanted from alphabetic English because the akshara-based writing systems of the region place different demands on the learner, and they propose assessment approaches sensitive to syllabic and akshara structure. The stimulus design used in this thesis (Chapter~4) draws its task formats from this clinical tradition: minimal-pair discrimination, real-word and pseudo-word contrasts, and syllable-level manipulations, recast as inputs whose representations can be probed in a language model.
+
+\subsection{Computational models of word recognition}
+
+A parallel tradition models the reading process computationally, and these models clarify what it means for a system to encode phonological versus orthographic structure. The distributed, developmental model of Seidenberg and McClelland \cite{seidenberg1989distributed} treats word recognition as the settling of a connectionist network that maps orthography to phonology through distributed hidden representations, without explicit rules or a lexicon. The dual-route cascaded (DRC) model of Coltheart and colleagues \cite{coltheart2001drc} instead posits two routes, a lexical route for known words and a non-lexical grapheme-to-phoneme route for novel strings, and accounts for the differing behaviour of regular words, irregular words and pseudo-words. These models matter for the present thesis in two ways. First, they make precise the distinction between a representation that captures the surface form of a string and one that captures its phonological realisation, which is exactly the distinction the surface-control experiments of Chapter~5 are designed to separate. Second, they motivate the use of pseudo-words as stimuli: a system that genuinely recodes orthography to phonology, rather than memorising lexical entries, should generalise to well-formed pseudo-words, and probing for phonological structure on such items tests for a recoding-like capacity in the model.
+
+\subsection{Orthographic depth and cross-linguistic variation}
+
+The functional impact of a phonological deficit depends on \emph{orthographic depth}: the degree of one-to-one mapping between graphemes and phonemes \cite{ziegler2005reading,katz1992reading}. The orthographic depth hypothesis of Katz and Frost \cite{katz1992reading} states that readers of shallow (transparent) orthographies can rely more heavily on a sub-lexical grapheme-to-phoneme route, whereas readers of deep (opaque) orthographies must lean more on lexical and morphological information because the surface form under-determines the pronunciation. English is opaque: one grapheme can map to many phonemes and vice versa. Shallow orthographies such as Finnish, Italian and Spanish are close to one-to-one. Bangla is intermediate: most consonants and vowels map transparently, but the script makes extensive use of conjunct characters (\textit{yuktoborno}) whose surface form does not transparently decompose into their phonological constituents, and uses the \textit{matra} headline and a range of vowel diacritics that complicate the surface-to-sound mapping.
+
+The cross-linguistic literature reports that, at a fixed severity threshold, the apparent prevalence of dyslexia is lower in shallow orthographies, because transparent mappings make decoding easier to acquire, yet the underlying phonological deficit is comparable across orthographies \cite{ziegler2005reading,wagner2020prevalence}. Ziegler and Goswami \cite{ziegler2005reading} frame this within a psycholinguistic grain-size theory, in which readers of different orthographies converge on different optimal units of analysis (phoneme, rime, syllable, whole word) as a function of the consistency and granularity of their writing system. This body of work directly motivates the cross-lingual design of the thesis: any model representation that genuinely encodes phonological structure should generalise across orthographies of differing depth, while one that merely captures language-specific surface statistics should not, and a contrast between an opaque language (English) and an intermediate one (Bangla) is a natural setting in which to test this.
+
+\subsection{Bangla orthography and reading acquisition}
+
+Bangla (Bengali) is written in an abugida (alphasyllabary) in which the consonant carries an inherent vowel that is overridden by explicit vowel signs. Reading acquisition in such systems is shaped by the akshara as the functional orthographic unit, and by the visual and phonological complexity of conjunct consonants, as emphasised in the South-Asian reading-development literature \cite{nag2014dyslexia,nag2017indian}. For Bangla specifically, the most directly relevant grounding for this thesis is the dissertation of Badsha \cite{badsha2024mall}, which documents the phonological difficulty patterns of dyslexic Bangla-speaking primary-school children, including confusions of voiced and unvoiced stop pairs, errors on multisyllabic words and confusions involving the \textit{matra}. These clinician-observed patterns are adopted directly as the foundation of the stimulus design in Chapter~4: the voicing minimal pairs, the multisyllabic real-word and pseudo-word contrasts, and the \textit{matra}-sensitive items all trace back to documented Bangla difficulty categories rather than to a generic English template. Because no validated, normed automated screener exists for Bangla, and because the test infrastructure available for English has no Bangla counterpart, the language is a representative low-resource setting in which to ask whether multilingual models carry transferable phonological structure.
+
+\subsection{The Transformer architecture and its core operations}
+\label{sec:transformer-core}
+
+Modern language models are built on the Transformer architecture of Vaswani and colleagues \cite{vaswani2017attention}, which replaced recurrence with self-attention and made it possible to train very large models on very large corpora in parallel. Because all four models studied in this thesis share this substrate, it is worth stating its core operations precisely; the architectural differences between the models, described below, are best understood as variations on these same building blocks.
+
+A Transformer represents a sequence of tokens as a matrix of vectors and refines it through a stack of identical layers. The central operation is \emph{scaled dot-product attention}, in which each position forms a query that is compared against the keys of all positions to produce a weighted sum of their values,
+\begin{equation}
+\label{eq:attention}
+\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V,
+\end{equation}
+where $Q$, $K$ and $V$ are the query, key and value matrices obtained by linear projection of the layer input and $d_k$ is the key dimension; the factor $1/\sqrt{d_k}$ keeps the dot products from growing too large as dimension increases. Rather than attending once, the model attends in $h$ parallel subspaces (heads) and concatenates the results,
+\begin{equation}
+\label{eq:multihead}
+\begin{aligned}
+\mathrm{MultiHead}(Q,K,V) &= \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\,W^{O}, \\
+\mathrm{head}_i &= \mathrm{Attention}\!\left(QW_i^{Q},\, KW_i^{K},\, VW_i^{V}\right),
+\end{aligned}
+\end{equation}
+with learned projections $W_i^{Q}, W_i^{K}, W_i^{V}$ and output projection $W^{O}$. Each layer follows attention with a position-wise feed-forward network applied identically at every position,
+\begin{equation}
+\label{eq:ffn}
+\mathrm{FFN}(x) = \max(0,\, xW_1 + b_1)\,W_2 + b_2 ,
+\end{equation}
+and wraps each sub-layer in a residual connection followed by layer normalisation \cite{ba2016layernorm},
+\begin{equation}
+\label{eq:resnorm}
+\mathrm{output} = \mathrm{LayerNorm}\!\left(x + \mathrm{Sublayer}(x)\right).
+\end{equation}
+Because attention is order-invariant, positional information must be injected separately, originally through fixed sinusoidal position encodings added to the token embeddings \cite{vaswani2017attention}. The variations that distinguish the four models, which are described per model below, lie largely in three places: how position is encoded (sinusoidal, rotary, relative bias or linear bias), which normalisation and activation the feed-forward block uses, and whether the layer stack is configured as an encoder, a decoder, or both.
+
+\subsection{Pretraining objectives}
+\label{sec:pretraining-objectives}
+
+From this common substrate, three pretraining objectives have emerged, and they correspond to the three architectural configurations used in this thesis. \emph{Masked language modelling} (MLM), introduced at scale by BERT \cite{devlin2019bert}, corrupts a random subset $M$ of input positions and trains a bidirectional encoder to recover them from both left and right context,
+\begin{equation}
+\label{eq:mlm}
+\mathcal{L}_{\mathrm{MLM}}(\theta) = -\,\mathbb{E}_{x}\sum_{i\in M}\log P_\theta\!\left(x_i \mid x_{\setminus M}\right),
+\end{equation}
+where $x_{\setminus M}$ is the sequence with the masked positions hidden. This objective yields representations optimised for understanding rather than generation. \emph{Autoregressive (causal) language modelling} (CLM), exemplified by the GPT line \cite{radford2019gpt2}, factorises the joint probability of a sequence left to right and trains a decoder to predict each token from its predecessors,
+\begin{equation}
+\label{eq:clm}
+\begin{aligned}
+P_\theta(x) &= \prod_{t=1}^{T} P_\theta\!\left(x_t \mid x_{<t}\right), \\
+\mathcal{L}_{\mathrm{CLM}}(\theta) &= -\sum_{t=1}^{T}\log P_\theta\!\left(x_t \mid x_{<t}\right).
+\end{aligned}
+\end{equation}
+\emph{Span-corruption sequence-to-sequence} pretraining, introduced by T5 \cite{raffel2020t5}, casts every task as text-to-text: contiguous spans of the input are replaced by sentinel tokens and an encoder-decoder is trained to reconstruct the dropped spans, so that for a corrupted input $\tilde{x}$ and target $y$ (the concatenation of the removed spans),
+\begin{equation}
+\label{eq:span}
+\mathcal{L}_{\mathrm{span}}(\theta) = -\sum_{t=1}^{|y|}\log P_\theta\!\left(y_t \mid y_{<t},\, \tilde{x}\right).
+\end{equation}
+A further consideration specific to multilingual pretraining is corpus balancing. Because raw web corpora are dominated by high-resource languages, multilingual models up-sample low-resource languages by exponentiating the empirical language distribution with a smoothing exponent $\alpha\in(0,1)$,
+\begin{equation}
+\label{eq:smoothing}
+q_i = \frac{p_i^{\alpha}}{\sum_j p_j^{\alpha}},
+\qquad
+p_i = \frac{n_i}{\sum_j n_j},
+\end{equation}
+where $n_i$ is the token count of language $i$; smaller $\alpha$ flattens the distribution and gives low-resource languages such as Bangla more weight. Both XLM-RoBERTa and mT5 adopt this kind of smoothing during pretraining \cite{conneau2020xlmr,xue2021mt5}.
+
+\subsection{The four models studied}
+\label{sec:four-models}
+
+The thesis compares four publicly available multilingual models, chosen so that each instantiates a different combination of architecture and objective; contrasting them on shared stimuli isolates the effect of the pretraining recipe from that of any single model, and this cross-architecture comparison is the structural backbone of Chapter~5. Tokenisation in all four rests on subword segmentation, either byte-pair encoding \cite{sennrich2016bpe} or the SentencePiece unigram model \cite{kudo2018sentencepiece}, which matters here because it determines how a Bangla word is split before it ever reaches the network. The purpose of this section is to introduce each model at the level of its architecture and pretraining objective; the exact configuration of each checkpoint used in the experiments, including its parameter count, layer count, hidden size, tokeniser and pretraining corpus, is tabulated with the experimental setup in Chapter~4 and is not repeated here.
+
+\subsubsection{XLM-RoBERTa (multilingual masked encoder)}
+
+XLM-RoBERTa \cite{conneau2020xlmr} is an encoder-only Transformer trained with the masked language modelling objective of Equation~\eqref{eq:mlm} on a large multilingual corpus that includes Bangla. It follows the RoBERTa recipe, dropping BERT's next-sentence-prediction task and relying on MLM alone with a shared SentencePiece vocabulary, and it uses learned absolute position embeddings together with the GELU activation \cite{hendrycks2016gelu} in its feed-forward blocks. Because the objective is bidirectional, the hidden state at each position integrates both left and right context, which makes its representations a natural fit for the token-level probing carried out in this thesis. Its low-resource balance is governed by the corpus smoothing of Equation~\eqref{eq:smoothing}, which up-samples lower-resource languages such as Bangla.
+
+\subsubsection{Llama 3.1 8B (English-heavy causal decoder)}
+
+Llama 3.1 8B \cite{dubey2024llama3} is a decoder-only Transformer trained with the causal objective of Equation~\eqref{eq:clm} on a corpus that is predominantly English with comparatively little explicit multilingual coverage, which makes it the natural test of whether competence transfers to Bangla without deliberate multilingual training. It departs from the original Transformer in three architectural choices that are now standard in the Llama family. First, it normalises with RMSNorm \cite{zhang2019rmsnorm}, which rescales by the root-mean-square of the activations without subtracting the mean,
+\begin{equation}
+\label{eq:rmsnorm}
+\mathrm{RMSNorm}(x) = \frac{x}{\sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^{2} + \epsilon}}\,\odot\, g,
+\end{equation}
+with a learned gain vector $g$. Second, its feed-forward block uses the SwiGLU gated activation \cite{shazeer2020glu},
+\begin{equation}
+\label{eq:swiglu}
+\begin{aligned}
+\mathrm{FFN}_{\mathrm{SwiGLU}}(x) &= \big(\mathrm{SiLU}(xW_1)\,\odot\,xW_3\big)\,W_2, \\
+\mathrm{SiLU}(z) &= z\,\sigma(z),
+\end{aligned}
+\end{equation}
+where $\sigma$ is the logistic sigmoid and $\odot$ is the elementwise product. Third, it encodes position with rotary position embeddings (RoPE) \cite{su2021roformer}, which rotate the query and key vectors by a position-dependent angle so that their inner product depends only on the relative offset,
+\begin{equation}
+\label{eq:rope}
+\langle R_m\,q,\; R_n\,k\rangle = \langle q,\; R_{n-m}\,k\rangle,
+\end{equation}
+with $R_m$ a block-diagonal rotation matrix for position $m$. Its attention additionally adopts grouped-query attention, in which several query heads share a single key/value projection so as to reduce the memory cost of inference, and its subword vocabulary is built with byte-level BPE so that any Bangla string is representable even though the model is English-heavy.
+
+\subsubsection{BLOOM 7B1 (multilingual causal decoder)}
+
+BLOOM 7B1 \cite{scao2022bloom} is also a decoder-only model trained with the causal objective of Equation~\eqref{eq:clm}, but unlike Llama it is deliberately multilingual, pretrained on a corpus with explicit Bangla coverage; it is therefore the multilingual counterpart to Llama in the comparison. Its two distinctive architectural features are an additional layer normalisation applied immediately after the token embeddings, which stabilises training, and the use of attention with linear biases (ALiBi) \cite{press2022alibi} in place of explicit position embeddings. ALiBi adds a static, head-specific penalty to the attention logits that grows linearly with the distance between positions,
+\begin{equation}
+\label{eq:alibi}
+\begin{aligned}
+\mathrm{Attention}_{\mathrm{ALiBi}} &= \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}} + m\cdot B\right)V, \\
+B_{ij} &= -(i-j)\ \ \text{for}\ \ j\le i,
+\end{aligned}
+\end{equation}
+where $m$ is a fixed slope assigned per head. Its feed-forward blocks use the GELU activation \cite{hendrycks2016gelu}.
+
+\subsubsection{mT5 XL (multilingual span-corruption encoder-decoder)}
+
+mT5 \cite{xue2021mt5} is the multilingual version of T5 and the only encoder-decoder among the four. It is trained with the span-corruption objective of Equation~\eqref{eq:span} on a large multilingual web corpus with explicit Bangla coverage, using the same low-resource smoothing of Equation~\eqref{eq:smoothing}. Architecturally it follows the T5.1.1 recipe: it normalises with RMSNorm \cite{zhang2019rmsnorm}, its feed-forward blocks use the GeGLU gated activation \cite{shazeer2020glu},
+\begin{equation}
+\label{eq:geglu}
+\mathrm{FFN}_{\mathrm{GeGLU}}(x) = \big(\mathrm{GELU}(xW_1)\,\odot\,xW_3\big)\,W_2,
+\end{equation}
+and rather than adding positional vectors it injects \emph{relative position bias}, a learned scalar added to the attention logits as a function of the relative distance between key and query, with the bias parameters shared across all layers. Because it has a dedicated bidirectional encoder distinct from its decoder, the representations probed in this thesis are taken from the encoder stack, where, as Chapter~5 reports, the cross-lingual lexical signal turns out to be unusually concentrated.
+
+These four models exhaust the dominant pretraining recipes in use at the time of writing -- a multilingual masked encoder, an English-heavy causal decoder, a multilingual causal decoder and a multilingual encoder-decoder -- and their controlled comparison is what allows the thesis to attribute differences in phonological encoding to the pretraining recipe rather than to incidental properties of one model.
+
+\subsection{Subword tokenisation and its consequences for Bangla}
+\label{sec:tokenisation}
+
+None of the four models reads characters or whole words directly; each first segments text into subword units, and because this segmentation decides what the network ever ``sees'' of a Bangla word, it is worth describing the two segmentation schemes the models use and their specific consequences for an akshara-based script. The older scheme, byte-pair encoding (BPE) \cite{sennrich2016bpe}, begins with a base vocabulary of characters (or, in the byte-level variant used by Llama and BLOOM, of the 256 possible bytes) and greedily merges the most frequent adjacent pair of symbols, repeating until a target vocabulary size is reached. Writing $\mathrm{count}(a,b)$ for the corpus frequency of the adjacent pair $(a,b)$, each BPE step adds the merge
+\begin{equation}
+\label{eq:bpe}
+(a,b)^{\ast} = \arg\max_{(a,b)}\ \mathrm{count}(a,b),
+\end{equation}
+so the resulting vocabulary is purely frequency-driven and contains no notion of linguistic unit. The newer scheme, the SentencePiece unigram language model \cite{kudo2018sentencepiece} used by XLM-RoBERTa and mT5, instead treats segmentation as probabilistic: it maintains a vocabulary of candidate pieces, each with a probability $p(s)$, models a tokenised sentence $\mathbf{x}=(s_1,\dots,s_M)$ as a product of piece probabilities, and selects the segmentation of highest likelihood,
+\begin{equation}
+\label{eq:unigram}
+\begin{aligned}
+P(\mathbf{x}) &= \prod_{i=1}^{M} p(s_i), \\
+\mathbf{s}^{\ast} &= \arg\max_{\mathbf{s}\in \mathcal{S}(\mathbf{x})} \prod_{i=1}^{M} p(s_i),
+\end{aligned}
+\end{equation}
+where $\mathcal{S}(\mathbf{x})$ is the set of all segmentations of the string. Neither scheme is aware of phonology or of the akshara as a unit. For Bangla this has two concrete effects that matter for the experiments. First, a conjunct character (\textit{yuktoborno}) or a vowel-diacritic-bearing akshara is frequently split across several pieces, or, under byte-level BPE, across several sub-character byte fragments, so the orthographic unit a linguist would recognise has no single corresponding vector. Second, because the first piece of a word may be a byte fragment rather than a meaningful sub-unit, a probe that keyed on the ``first token'' could be exploiting an artefact of segmentation rather than a phonological property. These two effects are exactly why the thesis pools representations across the subword pieces of each stimulus and why it includes the first-character control of Section~\ref{sec:sanity}: the tokeniser, not the model, would otherwise be a hidden confound.
+
+\subsection{Probing as a method}
+
+Probing trains a small supervised classifier (a ``probe'') on the frozen hidden states of a pretrained model to test whether a target linguistic property is linearly recoverable from those states \cite{conneau2018probing,hewitt2019structural}. Conneau and colleagues \cite{conneau2018probing} introduced a suite of probing tasks for sentence representations spanning surface, syntactic and semantic properties, and Hewitt and Manning \cite{hewitt2019structural} showed that syntactic tree structure is linearly recoverable from contextual word representations via a learned distance metric. The probing programme has since been used to map where and to what degree different properties are encoded; Tenney and colleagues \cite{tenney2019bert} found that the layers of BERT recapitulate the classical NLP pipeline, with lower layers carrying more local, surface and syntactic information and higher layers carrying more semantic information.
+
+A probe that achieves above-chance accuracy is taken as evidence that the model encodes the property, while a probe at chance is taken as evidence that the property is not linearly accessible at that layer. Probing requires no model fine-tuning and isolates representational content from task-specific generation behaviour, which is why it is the central method of this thesis: the four models differ in size, objective and tokenisation, and a frozen-representation probe is the only method that compares them on a common footing without the confound of differential fine-tuning.
+
+\subsection{Surface confounds, control tasks and information-theoretic probing}
+
+The probing method has well-known caveats, and the literature that articulates them shapes the experimental design of this thesis. A sufficiently expressive probe can extract patterns that the model does not in fact ``use,'' so high probe accuracy does not by itself establish that a property is salient to the model \cite{belinkov2022probing}. Hewitt and Liang \cite{hewitt2019control} formalise this with \emph{control tasks}: a probe should be evaluated not only on the target task but also on a random-label control with the same input distribution, and the gap between the two (selectivity) indicates how much of the probe's success reflects the representation rather than the probe's own capacity. Pimentel and colleagues \cite{pimentel2020information} reframe probing in information-theoretic terms, arguing that probing estimates mutual information between representations and labels, and Voita and Titov \cite{voita2020mdl} propose minimum-description-length probing, which measures not just the accuracy a probe can reach but the effort (description length) needed to reach it, giving a more robust signal of how readily a property is encoded.
+
+A distinct concern is that a probe that appears to recover a phonological target may in fact be reading a confounded surface feature, such as the first character of the string or simple character-frequency statistics, rather than the phonological property of interest \cite{belinkov2022probing,pimentel2020information}. This is the specific risk that the sanity-check experiments of this thesis are designed to address: in Section~\ref{sec:sanity} the phonological probe is compared against first-character lookup and character-statistic baselines, so that any reported phonological signal is the increment over what a trivial surface feature would already provide. To our knowledge this first-character control has not been applied in prior phonological probing of LLMs, which makes it a methodological contribution as well as a safeguard.
+
+\subsection{Quantifying probe performance: accuracy, chance and selectivity}
+\label{sec:probe-metrics}
+
+The interpretive cautions above translate into concrete quantities that a probing study must report, and it is useful to fix the ones used throughout this thesis. The primary measure is classification accuracy, the fraction of held-out stimuli the probe labels correctly,
+\begin{equation}
+\label{eq:accuracy}
+\mathrm{Acc} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{1}\!\left[\hat{y}_i = y_i\right],
+\end{equation}
+where $\hat{y}_i$ is the predicted label, $y_i$ the true label and $\mathbf{1}[\cdot]$ the indicator function. Accuracy is meaningful only against a baseline: for a balanced binary distinction such as the voiced/unvoiced contrast the chance level is $0.5$, and for a $C$-way balanced task it is $1/C$, so the thesis always reports accuracy relative to chance rather than in absolute terms. To separate genuine representational content from the probe's own capacity, Hewitt and Liang \cite{hewitt2019control} define \emph{selectivity} as the gap between accuracy on the real task and accuracy on a control task that assigns the same inputs random labels,
+\begin{equation}
+\label{eq:selectivity}
+\mathrm{Selectivity} = \mathrm{Acc}_{\mathrm{task}} - \mathrm{Acc}_{\mathrm{control}},
+\end{equation}
+so that a probe which scores highly only because it is expressive enough to memorise arbitrary labels is exposed by a low selectivity. The surface-control logic of this thesis is the same comparison applied to a different baseline: the reported phonological signal is the increment of the probe over a surface predictor,
+\begin{equation}
+\label{eq:increment}
+\Delta = \mathrm{Acc}_{\mathrm{probe}} - \mathrm{Acc}_{\mathrm{surface}},
+\end{equation}
+where $\mathrm{Acc}_{\mathrm{surface}}$ is the accuracy of a first-character or character-statistic lookup on the same stimuli. A positive $\Delta$ is the quantity that licenses a claim about phonological encoding. Finally, the minimum-description-length view of Voita and Titov \cite{voita2020mdl} reframes the question from ``what accuracy is reachable'' to ``how compactly can the labels be described given the representation,'' reporting a code length in which a shorter description indicates a property that is more readily and robustly encoded; the thesis treats this as complementary evidence to the accuracy-based measures above.
+
+\subsection{Representational similarity analysis and causal ablation}
+
+Two further methods complement probing. \textbf{Representational similarity analysis (RSA)} \cite{kriegeskorte2008rsa}, imported from systems neuroscience, computes the pairwise distance matrix of model hidden states across stimuli (a representational dissimilarity matrix, or RDM) and correlates it with a reference RDM, here the RDM of the same stimuli in another language. A high cross-lingual Spearman correlation at a given layer indicates that the geometry of stimulus representations is preserved across languages, independent of any downstream probe, and so provides probe-free corroboration of cross-lingual structure. \textbf{Causal forward-hook ablation} \cite{geiger2021causal,vig2020investigating} intervenes on the forward pass by setting a chosen subset of hidden units to zero and measuring the resulting drop in probe accuracy. Vig and colleagues \cite{vig2020investigating} use such causal mediation analysis to localise where a behaviour is carried, and Geiger and colleagues \cite{geiger2021causal} develop the more general framework of causal abstraction for identifying the variables a network actually computes with. If zeroing a small ``top-$K$'' set of probe-ranked units reduces accuracy more than zeroing a random set of the same size, the information is interpreted as causally concentrated in those units; if not, it is interpreted as distributed. The thesis uses RSA in Section~\ref{sec:rq3} and causal ablation in the localisation analysis to move from correlational evidence (a probe can read the property) towards mechanistic evidence (specific units carry it).
+
+\section{Review of Existing Research}
+
+\subsection{Cross-lingual transfer in multilingual LLMs}
+
+A large body of work establishes that multilingual models transfer non-trivially across languages without any explicit cross-lingual supervision. Pires and colleagues \cite{pires2019mbert} first showed that multilingual BERT achieves strong zero-shot cross-lingual transfer on part-of-speech tagging and named-entity recognition, including between languages that do not share a script, suggesting that the model learns representations that are at least partly language-neutral. Wu and Dredze \cite{wu2020emerging} surveyed mBERT across 39 languages and found that the quality of transfer is uneven and correlates with factors such as pretraining corpus size and subword overlap. Conneau and colleagues \cite{conneau2020xlmr} scaled this recipe up with XLM-RoBERTa, demonstrating that a larger model trained on more balanced multilingual data substantially improves cross-lingual natural-language inference, named-entity recognition and question answering, and that there is a transfer-interference trade-off as more languages are packed into a fixed capacity. These studies establish that multilingual masked encoders carry transferable information, but they operate at the sentence or token-label level and do not control for surface confounds at the lexical level, which is the level at which the present thesis works.
+
+A consistent secondary finding of this literature is that the ease of transfer depends on how close the source and target languages are, whether measured by shared script, shared subword vocabulary, or typological similarity \cite{pires2019mbert,wu2020emerging}. Transfer between languages that share a script and have overlapping vocabularies is comparatively easy, whereas transfer across scripts is harder and varies widely by language pair. The English-Bangla pair studied in this thesis falls firmly on the difficult side of this divide: the two languages use entirely different scripts, share little surface vocabulary, and are typologically distant, so any cross-lingual signal recovered here cannot be attributed to the script or vocabulary overlap that makes many published transfer results easy. This makes the pair a demanding test case rather than a favourable one, and it strengthens the interpretation of a positive result while making a negative result unsurprising for the more English-centric models.
+
+\subsection{What drives cross-lingual transfer?}
+
+A second strand asks \emph{why} transfer happens, and its answers inform the interpretation of the thesis results. K and colleagues \cite{k2020crosslingual} dissected the cross-lingual ability of mBERT and found, perhaps counter-intuitively, that lexical (subword) overlap between languages is not the primary driver of transfer; rather, the depth of the network and the sharing of structural parameters matter more, which implies that the model learns abstractions that are not tied to shared surface forms. Artetxe and colleagues \cite{artetxe2020crosslingual} reinforced this by showing that monolingual representations can be transferred to new languages by learning only new embeddings while freezing the body of the network, demonstrating that much of what transfers lives in language-agnostic parameters rather than in a shared vocabulary. Taken together, these results suggest that a multilingual model can in principle carry abstract, surface-independent structure across languages, which is precisely the kind of structure a phonological probe with surface controls is designed to detect. They also provide a theoretical reason to expect that, if any of the four model families encodes transferable phonological structure, it need not depend on shared Bangla-English surface forms.
+
+\subsection{Layer-wise organisation of linguistic information}
+
+A recurring finding across the probing literature is that linguistic information is not distributed uniformly through a network but is organised by depth, which bears directly on a study that probes every layer rather than a single one. Tenney and colleagues \cite{tenney2019bert} showed that the layers of BERT recapitulate a classical natural-language-processing order, with local and surface information concentrated in lower layers, syntactic information in the middle, and more abstract, semantic information emerging higher up; they further observed that the model tends to resolve these levels in an interpretable sequence rather than all at once. Hewitt and Manning \cite{hewitt2019structural} demonstrated that this organisation is geometric as well as informational, in that syntactic tree distance is approximately recoverable as a distance in a learned subspace of the hidden states, so that the location of a property and the shape it takes jointly characterise how it is encoded. A related theme in the multilingual setting is that intermediate layers often carry the most transferable, comparatively language-neutral information, while the uppermost layers re-specialise towards the pretraining objective \cite{k2020crosslingual}. These observations motivate the layer-by-layer scan adopted in this thesis: because phonological structure could in principle surface at any depth, and because the depth at which it peaks is itself informative about how a model treats sub-lexical form, reporting a single layer would risk both missing the signal and mischaracterising it. The mT5 localisation analysis of Chapter~5, which scans depth before isolating individual units, is a direct application of this principle and is the reason the analysis reports a depth profile rather than a single headline number.
+
+\subsection{Phonological and sub-lexical probing of LLMs}
+
+A separate line of work probes specifically for phonological and sub-lexical content. Kann and colleagues \cite{kann2018phonological} and Chrupa\l{}a \cite{chrupala2019phonological} report that recurrent and Transformer encoders carry sub-lexical phonological structure to varying degrees, depending on the task and the layer. Hofmann and colleagues \cite{hofmann2021superbizarre} show that subword tokenisation interacts with morphology in ways that cause LLMs to encode morphological boundaries inconsistently, which is relevant because the same tokenisation pressures that distort morphology can distort the recoverability of phonological units. Soulos and colleagues \cite{soulos2021structural} probe for compositional structure in vector representations using role-learning networks, asking whether the geometry of a representation reflects a decomposable structure rather than an unanalysed whole. None of these studies tests cross-lingual transfer of phonological structure to a low-resource South-Asian language, and none applies a first-character or character-statistic control of the kind reported in Chapter~5; the present thesis is, to our knowledge, the first to bring phonological probing, cross-lingual transfer and surface controls together for Bangla.
+
+\subsection{Critiques of probing and the move to controls}
+
+The maturation of the probing literature has been accompanied by an internal critique that this thesis takes seriously. Belinkov \cite{belinkov2022probing}, in a survey of probing classifiers, catalogues the method's pitfalls and recommends controls and selectivity measures as standard practice. The control-task proposal of Hewitt and Liang \cite{hewitt2019control}, the information-theoretic reframing of Pimentel and colleagues \cite{pimentel2020information}, and the minimum-description-length method of Voita and Titov \cite{voita2020mdl} together represent a shift from ``can a probe recover the property'' towards ``how much of that recovery is attributable to the representation rather than the probe, and how confidently.'' The design of this thesis is squarely within this corrective tradition: it pairs every phonological probe with surface-feature baselines, it reports the increment over those baselines rather than raw accuracy alone, and it corroborates probe results with probe-free RSA and with causal ablation, so that no single methodological weakness carries the conclusion.
+
+\subsection{Computational and automated dyslexia screening}
+
+Direct applications of language-model representations to dyslexia screening remain rare in the published literature. The closest non-LLM precedent is the Dytective system of Rello and colleagues \cite{rello2016dytective}, which uses a feature-engineered classifier over game-play interaction data in Spanish to estimate the risk of dyslexia, reaching accuracy in the region of eighty per cent on their cohort. Dytective is significant as a demonstration that automated screening is feasible, but it is built on hand-engineered behavioural features in a shallow orthography with substantial test infrastructure, rather than on learned linguistic representations, and it does not transfer to a low-resource language without re-engineering. To the best of our knowledge no comparable surface-controlled probing study has been published for Bangla, and no validated automated dyslexia screener exists for Bangla-language settings; the broader observation that South-Asian languages lack the normative test infrastructure available for English is consistent with the reading-development literature surveyed by Nag and colleagues \cite{nag2014dyslexia,nag2017indian}. The present thesis does not claim a deployable screener; rather, it asks the prior representational question of whether multilingual models encode the phonological structure on which such a screener would have to rely, which is a necessary precondition that has not previously been established for Bangla.
+
+\subsection{Reading resources for low-resource and South-Asian languages}
+
+The scarcity of resources for Bangla is an instance of a general pattern. The akshara-based scripts of South Asia differ structurally from the alphabetic systems on which most reading research and most assessment instruments are based, and Nag and colleagues \cite{nag2014dyslexia,nag2017indian} argue that both theory and assessment must be adapted rather than imported. At the representational level, the closest published work to this thesis is that of Beinborn and Choenni \cite{beinborn2019semantic}, who study how multilingual contextual representations drift in semantic space across languages; their work establishes that cross-lingual representational analysis at the lexical level is informative, but it concerns semantics rather than phonology and does not address dyslexia or surface controls. The combination the thesis targets, namely rigorous probing methodology, surface-controlled stimuli grounded in a clinician-observed Bangla difficulty taxonomy, and a four-model architectural comparison at the lexical level for a low-resource South-Asian language, has not previously been assembled.
+
+\subsection{Mechanistic interpretability of multilingual models}
+
+Mechanistic interpretability of multilingual representations is the most active recent strand and is where the localisation result of this thesis is situated. Sta\'nczak and colleagues \cite{stanczak2022neurons} identify language-neutral and language-specific neurons in multilingual models and show that some morphosyntactic information is carried by overlapping sets of neurons across languages. Vig and colleagues \cite{vig2020investigating} and Geiger and colleagues \cite{geiger2021causal} provide the causal-mediation and causal-abstraction machinery for attributing a behaviour to specific components rather than merely correlating it with them. From the decoder-only direction, Bricken and colleagues \cite{bricken2023monosemanticity} and the broader sparse-autoencoder literature search for monosemantic features in language models, decomposing representations into interpretable directions, though this work does not target cross-lingual lexical content. A central motivation for that line of work is the observation that individual neurons in large models are frequently polysemantic and that features appear to be stored in superposition, spread across many units rather than aligned with single ones; this makes \emph{distributed} coding the default expectation, and it is the backdrop against which any claim of concentrated coding has to be argued. It is precisely for this reason that the localisation analysis in this thesis does not rest on probe weights alone but uses causal ablation, contrasting the effect of zeroing a probe-ranked top-$K$ set of units against zeroing a random set of equal size, so that concentration is demonstrated by intervention rather than merely asserted from a ranking. The mT5 localisation result reported here, in which a small number of units (and in particular two persistent backbone units) carry a disproportionate share of the cross-lingual lexical signal, sits within this strand and is, to our knowledge, the first demonstration of concentrated cross-lingual lexical coding in an encoder-decoder model.
+
+\subsection{Comparative Analysis and Research Gap}
+
+Table~\ref{tab:gap-analysis} positions the most directly comparable prior work against the present thesis along six dimensions: whether the work targets phonological structure, whether it tests cross-lingual transfer, whether it addresses a low-resource language such as Bangla, whether it applies surface-feature controls, whether it compares multiple model architectures, and whether it offers a mechanistic (causal or localisation) account rather than a purely correlational one. No prior entry satisfies all six. The cross-lingual transfer literature \cite{pires2019mbert,wu2020emerging,conneau2020xlmr,k2020crosslingual,artetxe2020crosslingual} is strong on transfer and on multi-language scope but does not target phonology, works above the lexical level, and rarely applies surface controls. The phonological probing literature \cite{kann2018phonological,chrupala2019phonological,soulos2021structural} targets phonology but is overwhelmingly monolingual English and predates the move to first-character controls. The dyslexia-screening literature \cite{rello2016dytective} addresses the application but uses engineered features in a shallow, well-resourced orthography. The interpretability literature \cite{stanczak2022neurons,bricken2023monosemanticity,vig2020investigating} offers mechanism but not a phonological, cross-lingual, low-resource focus. The gap the thesis fills is the intersection of all six dimensions.
+
+\begin{table}[ht]
+\centering
+\caption{Positioning of representative prior work against this thesis along six dimensions. A check (\checkmark) indicates the dimension is addressed, a cross ($\times$) that it is not, and a tilde ($\sim$) that it is addressed partially.}
+\label{tab:gap-analysis}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Work} & \textbf{Phonology} & \textbf{Cross-lingual} & \textbf{Low-resource} & \textbf{Surface} & \textbf{Multi-arch.} & \textbf{Mechanism} \\
+ & & & \textbf{(Bangla)} & \textbf{controls} & \textbf{comparison} & \\
+\hline
+Cross-lingual transfer \cite{pires2019mbert,conneau2020xlmr,k2020crosslingual} & $\times$ & \checkmark & $\sim$ & $\times$ & $\sim$ & $\times$ \\
+Phonological probing \cite{kann2018phonological,chrupala2019phonological,soulos2021structural} & \checkmark & $\times$ & $\times$ & $\times$ & $\sim$ & $\times$ \\
+Probing critiques / controls \cite{hewitt2019control,pimentel2020information,voita2020mdl} & $\times$ & $\times$ & $\times$ & \checkmark & $\times$ & $\times$ \\
+Dyslexia screening \cite{rello2016dytective} & \checkmark & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+Multilingual interpretability \cite{stanczak2022neurons,bricken2023monosemanticity} & $\times$ & \checkmark & $\times$ & $\times$ & $\sim$ & \checkmark \\
+Bangla reading / clinical \cite{nag2014dyslexia,badsha2024mall} & \checkmark & $\times$ & \checkmark & $\times$ & $\times$ & $\times$ \\
+\textbf{This thesis} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\section{Summary of Key Findings}
+
+The existing literature establishes three things relevant to this thesis. First, multilingual LLMs transfer non-trivially across languages, and the transfer appears to rest on abstract, surface-independent structure rather than on shared vocabulary \cite{pires2019mbert,conneau2020xlmr,k2020crosslingual,artetxe2020crosslingual}; yet most of this evidence is gathered at the sentence or token-label level and does not control for surface features at the lexical level. Second, phonological probing of LLMs has been performed primarily on English, primarily on masked encoders, and primarily without sanity checks against first-character or character-statistic baselines \cite{kann2018phonological,chrupala2019phonological,soulos2021structural}, even as the methodological literature has converged on controls and information-theoretic measures as necessary safeguards \cite{hewitt2019control,pimentel2020information,voita2020mdl,belinkov2022probing}. Third, automated dyslexia screening with learned representations is essentially absent for low-resource South-Asian languages, and no published study compares the four canonical pretraining recipes on shared, surface-controlled stimuli grounded in a clinician-observed Bangla difficulty taxonomy. The remainder of this thesis fills these gaps: surface-controlled stimuli (Chapter~4), four-model probing with first-character and character-statistic sanity checks (Section~\ref{sec:sanity}), length-matched cross-lingual transfer (Section~\ref{sec:rq2}), RSA and causal ablation (Sections~\ref{sec:rq3}--\ref{sec:mt5-localisation}), and a model-selection recommendation (Chapter~6).

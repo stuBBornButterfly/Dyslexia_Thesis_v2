@@ -1,0 +1,3 @@
+# This project REQUIRES XeLaTeX: fontspec loads the bundled Bengali font.
+# Overleaf reads this file, so the compiler is selected automatically.
+$pdf_mode = 5;

@@ -1,0 +1,42 @@
+Dyslexia-XLM-R/dys-env/
+dyslexia-LLM/dys-llm-env/
+dyslexia-bloom/dys-env-bloom/
+dyslexia-bloom/unsloth_compiled_cache
+dyslexia-LLM/unsloth_compiled_cache/
+
+dyslexia-LLM/representations/
+dyslexia-bloom/representations/
+Dyslexia-XLM-R/representations/
+
+dyslexia-mt5/dys-mt5-env/
+dyslexia-mt5/dys-mt5-env
+dyslexia-mt5/representations/
+
+# --- ByT5 (was missing: 5.5 GB, incl. 16 files over GitHub's 100 MB hard limit) ---
+Dyslexia-ByT5/dys-byt5-env/
+Dyslexia-ByT5/representations/
+
+# --- catch-all for any future model folder ---
+*/dys-*env/
+*/representations/
+*/unsloth_compiled_cache/
+
+# --- LaTeX build artefacts (regenerable from source) ---
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.xdv
+*.spl
+*.bbl
+*.blg
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# --- editor / OS ---
+.vscode/
+.~lock.*#
+.DS_Store

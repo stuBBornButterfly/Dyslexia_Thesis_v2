@@ -1,0 +1,64 @@
+\section{Background}
+
+Developmental dyslexia is a specific learning difficulty that impairs accurate and fluent word reading, decoding and spelling despite adequate intelligence, schooling and sensory function \cite{snowling2020dyslexia,peterson2012developmental}. Estimated prevalence in school-age populations ranges from five to twelve percent depending on language, diagnostic threshold and writing system, with deeper, less transparent orthographies such as English producing higher functional impairment than shallow orthographies such as Spanish or Finnish \cite{ziegler2005reading,wagner2020prevalence}. The dominant cognitive account is the \emph{phonological deficit hypothesis}: dyslexic readers show weakness in representing, retrieving and manipulating speech sounds, which propagates into slower and less accurate grapheme-to-phoneme mapping during reading acquisition \cite{snowling2020dyslexia,goswami2011temporal}.
+
+The clinical pathway depends on standardised, language-specific test batteries (e.g.\ CTOPP-2 \cite{wagner2013ctopp}, TOWRE-2, the Bangla-language tools described by Nag and colleagues \cite{nag2014dyslexia,nag2017indian}). These instruments require trained psychometricians, take 30--90 minutes to administer and are not available in most of the world's languages. Bangla, with more than 270 million speakers, has no widely deployed normative dyslexia screening tool and no consensus diagnostic battery; suspected cases are routinely identified only at the secondary-school level or not at all \cite{nag2014dyslexia,nag2017indian,badsha2024mall}. The cost of this gap is conservatively counted in millions of children whose reading failure is interpreted as low ability or low motivation.
+
+In parallel, multilingual large language models (LLMs) have crossed a capability threshold at which their hidden representations encode rich, transferable linguistic structure across the languages in their pretraining mix \cite{conneau2020xlmr,scao2022bloom,dubey2024llama3,xue2021mt5}. The same models that drive translation, search and dialogue systems are also accumulating, as a by-product, the kind of lexical and sub-lexical structure that clinical screening tools probe explicitly. If that structure can be \emph{transferred} from a resource-rich language (English, where validated probes and labelled corpora exist) to a low-resource language (Bangla, where they do not), then a single multilingual model could in principle anchor a family of screening prototypes across many languages at once.
+
+\section{Rationale of the Study or Motivation}
+
+Two recent observations motivate the study. First, prior probing work on multilingual LLMs reports striking cross-lingual transfer of phonological and lexical features \cite{conneau2020xlmr,pires2019mbert,wu2020emerging}, but most of that work uses unmatched stimuli: surface confounds such as character length, byte length and orthographic baseline frequencies are not controlled. A probe that ``recovers voicing'' may, on inspection, be reading the first character of the word rather than any phonological feature. The first motivation is therefore to apply tight surface-feature sanity controls to standard phonological probing tasks and test whether the reported cross-lingual effects survive.
+
+Second, low-resource clinical applications of LLMs are constrained by both data and compute. A useful screening prototype must (i) work zero-shot from a high-resource source language because labelled Bangla data are scarce; (ii) be interpretable, because clinical deployment cannot rely on opaque scoring; and (iii) be parameter-efficient, because Bangladesh-region deployments often run on consumer hardware. No prior study compares the four canonical pretraining recipes -- multilingual masked encoder, English causal decoder, multilingual causal decoder and multilingual span-corruption encoder-decoder -- on the same surface-controlled cross-lingual lexical task with the same stimuli, on the same hardware. This thesis closes that gap.
+
+\section{Problem Statement}
+\label{sec:rqs}
+
+Despite repeated claims that multilingual LLMs encode transferable phonological and lexical structure, no published study (i) verifies these claims under surface-feature sanity controls, (ii) compares across the four dominant pretraining recipes with shared stimuli and shared metrics, and (iii) localises the cross-lingual lexical signal causally in the network. The practical consequence is that a clinician or NLP engineer asked to build a Bangla dyslexia screening prototype has no principled basis for choosing a model family, no estimate of expected transfer once surface confounds are removed, and no map of where the relevant computation lives. The problem this thesis addresses is therefore: \emph{which multilingual LLM family carries cross-lingual lexical information that survives surface-feature controls, how much information transfers from English to Bangla, and where in the network does it reside?}
+
+\textbf{Research questions.} The problem above is decomposed into four research questions that structure the empirical work and map one-to-one onto the result sections of Chapter~5.
+
+\begin{description}
+    \item[RQ1 (in-language encoding).] Can a frozen multilingual LLM encode phonological and lexical features (voicing, real vs.\ pseudo word, orthographic transparency, syllable count) such that those features are linearly recoverable from per-layer hidden states on English stimuli, and at which layers do they emerge?
+
+    \item[RQ2 (cross-lingual transfer).] Does the encoding measured in RQ1 transfer zero-shot from English to Bangla once stimulus-level surface confounds (first-character identity, character-statistic baselines and 1:1 character-length matching) are controlled?
+
+    \item[RQ3 (mechanism and localisation).] For models that exhibit cross-lingual transfer in RQ2, is the responsible information distributed across many hidden units or causally localised to a small subset, and if localised, does the subset persist across encoder depth?
+
+    \item[RQ4 (architecture and model selection).] Which combination of pretraining objective (masked encoder, causal decoder, span-corruption encoder-decoder) and pretraining language coverage (English-heavy vs.\ multilingual with explicit Bangla coverage) best supports surface-controlled cross-lingual lexical transfer at consumer-GPU parameter scale, and what is the resulting principled recommendation for downstream low-resource Bangla screening prototypes?
+\end{description}
+
+\section{Objective}
+
+The general objective is to identify which publicly available multilingual LLM is the best substrate for a low-resource Bangla dyslexia-screening prototype and to expose, at the unit level, how cross-lingual lexical representations are organised. The specific objectives are:
+
+\begin{enumerate}
+    \item Curate a 440-stimulus dataset (220 English + 220 Bangla) spanning seven dyslexia-relevant phonological task categories plus a cross-lingual concept-matching set, and verify Bangla items with a native speaker (Appendix~B).
+    \item Probe four publicly released multilingual LLMs -- XLM-RoBERTa large, Llama 3.1 8B, BLOOM 7B1 and mT5 XL -- using frozen per-layer linear probes on four phonological tasks: voicing, real vs.\ pseudo word, orthographic transparency and syllable count.
+    \item Apply surface-feature sanity controls (first-character lookup baseline, five-feature character-statistic baseline, character-length matching) and determine which tasks reflect genuine phonological coding versus surface artefacts.
+    \item Measure zero-shot cross-lingual transfer from English to Bangla on the surviving task using length-matched stimuli, and quantify per-model transfer gain above surface baselines.
+    \item Use Representational Similarity Analysis (RSA) and causal forward-hook ablation to characterise whether cross-lingual lexical information is distributed or localised in each model, and to identify persistent units across encoder depth where applicable.
+    \item Issue a model-selection recommendation grounded in surface-controlled performance, interpretability and parameter efficiency.
+\end{enumerate}
+
+\section{Methodology in Brief}
+
+Four publicly released multilingual LLMs are loaded in their official pretrained form and frozen. The 440-stimulus dataset is fed through each model with a single forward pass per item; hidden states are collected at every layer (or every encoder layer for the encoder-decoder model). For each phonological task, a per-layer linear probe (logistic regression for classification, ridge regression for syllable count) is trained on English and evaluated on English (in-language) and on Bangla (zero-shot cross-lingual). Surface-feature baselines are trained on the same labels using only character statistics. After length matching, the surviving task is re-probed and used to score Representational Similarity Analysis (RSA) and a forward-hook causal ablation that zeroes the top-$K$ probe-ranked hidden units and remeasures transfer. The mT5 encoder is re-ablated at five depths with random-unit controls to test whether localisation is layer-specific or persistent. Figure~\ref{fig:methodology-pipeline} (Chapter~4) summarises the pipeline.
+
+\section{Scopes and Challenges}
+
+The scope is bounded to (i) four multilingual LLM families released as of 2024, (ii) two languages (English and Bangla), (iii) word-level stimuli with sentence-level items reserved for descriptive use, and (iv) frozen, read-only probing -- no fine-tuning, no continual pretraining and no clinical deployment. The four main challenges encountered were: (1) 8B-parameter causal models do not fit in a single consumer GPU with full-precision activations across 32 layers; this is mitigated with 4-bit weight quantisation via Unsloth/BitsAndBytes \cite{dettmers2022bnb} for the Llama and BLOOM passes, while keeping probes trained on the resulting hidden states. (2) Bangla orthography includes conjuncts (\textit{yuktoborno}) whose tokenisation varies across model families, biasing surface metrics; this is addressed by computing length statistics from the original Unicode string, not the tokeniser output. (3) Most Bangla phonological labels are not publicly available; we generate them from phonotactic rules and verify with a native speaker, but discover during sanity checking that the voicing label set is fully recoverable from the first character -- a finding that reframes part of the original research question. (4) Causal ablation specificity requires a random-unit control with multiple seeds; the encoder-decoder localisation analysis is therefore the most compute-intensive part of the pipeline and is run on the smaller mT5 encoder.
+
+\section{Thesis Organization}
+
+The remainder of this thesis is organised into five further chapters and two appendices.
+
+\begin{description}
+    \item[Chapter 2 (Literature Review)] introduces the cognitive science of dyslexia, the notion of orthographic depth, the architecture of multilingual LLMs and the interpretability methods used here; surveys the empirical literature on cross-lingual transfer, phonological probing and automated dyslexia screening; and positions the thesis against that literature to make the research gap explicit.
+    \item[Chapter 3 (Requirements, Impacts and Constraints)] specifies the functional, non-functional, software and hardware requirements; analyses the societal, environmental and ethical impact; states the applicable standards; and presents the project management plan, risk management and economic analysis.
+    \item[Chapter 4 (Proposed Methodology)] describes the frozen per-layer linear-probing pipeline, justifies the design choice against fine-tuning and single-layer alternatives, specifies the four probed models and their architectures, and documents the construction, labelling, cleaning and preprocessing of the 440-item stimulus dataset.
+    \item[Chapter 5 (Result Analysis)] reports the results in research-question order: in-language English encoding (RQ1), the surface-feature sanity checks that reframe it, surface-controlled cross-lingual transfer (RQ2), Representational Similarity Analysis, causal forward-hook ablation and the mT5 depth-and-overlap analysis (RQ3), and the cross-model comparison and model-selection recommendation (RQ4).
+    \item[Chapter 6 (Conclusion)] summarises the findings, states the contributions to the field, and sets out the clinician-supervised future work required before any prototype is used with children.
+    \item[Appendices.] Appendix~A pins the tools, software, hardware and reproducibility environment; Appendix~B reproduces the stimulus categories, per-category counts and the eighteen-column schema.
+\end{description}

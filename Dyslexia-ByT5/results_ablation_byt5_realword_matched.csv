@@ -1,0 +1,6 @@
+model,condition,n_units,en_score,bn_score
+byt5,baseline,0,1.0,0.92
+byt5,top5,5,1.0,0.92
+byt5,top10,10,1.0,0.92
+byt5,top20,20,1.0,0.92
+byt5,rand10,10,1.0,0.92

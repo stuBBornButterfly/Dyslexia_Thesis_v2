@@ -1,0 +1,125 @@
+\chapter*{Appendix B: Stimulus Categories and Sample Sizes}
+\addcontentsline{toc}{section}{Stimulus dataset overview}
+
+\section*{Stimulus dataset overview}
+
+The 440-stimulus dataset (\texttt{dyslex\_probe\_stimuli\_clean.csv}, 18 columns) is committed to each per-model repository and is identical across the four model runs. Bangla items are stored in Unicode Bengali script (sample: {\banglafont গ}, {\banglafont ব}, {\banglafont দ}).
+
+\begin{table}[H]
+\centering
+\caption{Per-category stimulus counts (English / Bangla). Total 440 items.}
+\label{tab:stim-distribution}
+\small
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{6cm}|>{\centering\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{2.2cm}|}
+\hline
+\textbf{Category} & \textbf{English} & \textbf{Bangla} & \textbf{Total} \\
+\hline
+Minimal pair       & 60  & 60  & 120 \\
+\hline
+Multisyllabic      & 30  & 30  & 60 \\
+\hline
+Pseudoword         & 25  & 25  & 50 \\
+\hline
+Real word          & 25  & 25  & 50 \\
+\hline
+Phoneme-grapheme   & 25  & 25  & 50 \\
+\hline
+Rhyme              & 20  & 20  & 40 \\
+\hline
+Sentence           & 15  & 15  & 30 \\
+\hline
+\textbf{Phonological subtotal} & \textbf{200} & \textbf{200} & \textbf{400} \\
+\hline
+Concept match (cross-lingual, RSA) & 20 & 20 & 40 \\
+\hline
+\textbf{Total}    & \textbf{220} & \textbf{220} & \textbf{440} \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\section*{Schema (18 columns)}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Column} & \textbf{Description} \\
+\hline
+\texttt{id}                       & Unique identifier (CAT\_LANG\_NUM, e.g.\ MP\_EN\_001) \\
+\hline
+\texttt{language}                 & \texttt{english} or \texttt{bangla} \\
+\hline
+\texttt{task\_category}           & minimal\_pair / pseudoword / real\_word / multisyllabic / phoneme\_grapheme / rhyme / sentence \\
+\hline
+\texttt{word}                     & The stimulus (Bangla in Bengali script) \\
+\hline
+\texttt{ipa}                      & IPA transcription (empty for sentences) \\
+\hline
+\texttt{syllable\_count}          & Integer; for sentences this is word count \\
+\hline
+\texttt{phonological\_complexity} & low / medium / high \\
+\hline
+\texttt{orthographic\_transparency} & transparent / opaque \\
+\hline
+\texttt{voiced\_unvoiced}         & voiced / unvoiced / na \\
+\hline
+\texttt{is\_real\_word}           & True / False \\
+\hline
+\texttt{has\_consonant\_cluster}  & True / False (Bangla: includes conjuncts) \\
+\hline
+\texttt{has\_irregular\_mapping}  & True / False \\
+\hline
+\texttt{difficulty}               & easy / medium / hard \\
+\hline
+\texttt{pair\_id}                 & Links members of minimal pairs and rhyme pairs \\
+\hline
+\texttt{matched\_pair\_id}        & Links cross-lingual concept pairs (e.g.\ water $\leftrightarrow$ {\banglafont পানি}) \\
+\hline
+\texttt{dissertation\_source}     & ``Findings ch.6 (...)'' if from a source dissertation; ``generated'' otherwise \\
+\hline
+\texttt{error\_type\_targeted}    & The dyslexia error pattern the item probes \\
+\hline
+\texttt{notes}                    & Free-form notes \\
+\hline
+\end{tabularx}
+\caption{Eighteen-column schema of the stimulus dataset.}
+\end{table}
+
+\section*{Pair structure}
+
+\begin{itemize}
+    \item \textbf{Minimal pairs:} 30 pairs per language. English: 15 voiced-unvoiced + 8 vowel + 7 place/manner. Bangla: 15 voiced-unvoiced + 8 aspirated/unaspirated + 7 vowel/other.
+    \item \textbf{Rhyme pairs:} 10 pairs per language. Mix of true rhymes, non-rhymes and orthographically tricky cases.
+    \item \textbf{Pseudoword / real-word matching:} structural correspondence by syllable count and phonotactic pattern.
+    \item \textbf{Cross-lingual concept pairs:} a dedicated concept-match category of 20 translation-equivalent pairs (40 items; e.g.\ water / {\banglafont পানি}, fire / {\banglafont আগুন}), with 15 further items in other categories carrying cross-lingual concept links in the \texttt{matched\_pair\_id} column.
+\end{itemize}
+
+\section*{Bangla-specific coverage}
+
+The Bangla stimuli target dyslexia-relevant patterns documented in Badsha \cite{badsha2024mall}, whose 2024 University of Dhaka Master's dissertation (published in IJFMR vol.\ 6, no.\ 3) recorded the phonological difficulties of five dyslexic Bangla-speaking primary-school children. The specific pair sets and difficulty ranking below are taken directly from that work:
+\begin{itemize}
+    \item \textbf{Voiced-unvoiced contrasts:} all five stop pairs ({\banglafont ক/গ}, {\banglafont প/ব}, {\banglafont ত/দ}, {\banglafont ট/ড}, {\banglafont চ/জ}).
+    \item \textbf{Aspirated-unaspirated:} all eight aspirated/unaspirated pairs.
+    \item \textbf{Conjunct characters ({\banglafont যুক্তবর্ণ}):} {\banglafont ক্ষ}, {\banglafont জ্ঞ}, {\banglafont ব্রহ্ম}, {\banglafont দ্ব}, {\banglafont শ্চ}, {\banglafont ক্ষ্য}, {\banglafont ত্য}, {\banglafont ন্ন}, {\banglafont পদ্ম}, {\banglafont ধ্য}, {\banglafont প্রি}, {\banglafont সূত্র}, etc.
+    \item \textbf{Multisyllabic words (3--5 syllables):} including conjunct-heavy academic terms.
+    \item \textbf{Sentence-level processing:} 5 simple + 5 moderate + 5 conjunct-heavy.
+\end{itemize}
+
+\section*{Length-matched realword subset}
+
+The 100-item ($n = 50$ EN + $n = 50$ BN) length-matched real-versus-pseudo-word subset used for all RQ2/RQ3 reporting is selected by 1:1 character-length matching within each language. Mean character length: EN $= 6.88$, BN $= 5.20$. The selection is deterministic given the stimulus CSV and the random seed (\texttt{random\_state=42}); the resulting CSV is committed as \texttt{results\_realword\_length\_matched.csv} in \texttt{dyslexia-mt5/}.
+
+\section*{Caveats}
+
+\begin{itemize}
+    \item \textbf{Bangla voicing labels are inferable from the first character.} The original \texttt{voiced\_unvoiced} column for Bangla is unusable for phonological probing as posed; this is the central sanity-check finding of Chapter~5.
+    \item \textbf{Bangla pseudowords required native review.} The 25 Bangla pseudoword items follow Bangla phonotactic patterns and were re-checked by a native speaker to remove accidental real words.
+    \item \textbf{IPA approximations.} Bangla IPA follows standard conventions; dialectal variation (Standard Colloquial Bengali, Dhaka dialect, Kolkata dialect) is not captured.
+    \item \textbf{Sentence IPA intentionally empty.} The \texttt{syllable\_count} column for sentences holds word count instead.
+    \item \textbf{Conjunct encoding variants.} Some Bangla conjuncts admit multiple Unicode encodings; the dataset uses standard forms.
+\end{itemize}

@@ -1,0 +1,6 @@
+model,condition,n_units,measure_L,ablate_block,en_score,bn_score
+bloom,baseline,0,19,16,1.0,0.8139727159983464
+bloom,top5,5,19,16,1.0,0.8139727159983464
+bloom,top10,10,19,16,1.0,0.8357963875205254
+bloom,top20,20,19,16,1.0,0.8357963875205254
+bloom,rand10,10,19,16,1.0,0.8139727159983464

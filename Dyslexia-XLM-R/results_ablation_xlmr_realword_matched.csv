@@ -1,0 +1,6 @@
+model,condition,n_units,measure_L,ablate_block,en_score,bn_score
+xlmr,baseline,0,8,5,1.0,0.7756017951856384
+xlmr,top5,5,8,5,1.0,0.7536945812807883
+xlmr,top10,10,8,5,1.0,0.7536945812807883
+xlmr,top20,20,8,5,1.0,0.75
+xlmr,rand10,10,8,5,1.0,0.7536945812807883

@@ -1,0 +1,45 @@
+\section{Summary of Findings}
+
+This thesis probed four publicly released multilingual large language models -- XLM-RoBERTa large, Llama 3.1 8B, BLOOM 7B1 and mT5 XL -- for cross-lingual lexical and phonological structure using a curated 440-stimulus English / Bangla dataset, per-layer linear probes, surface-feature sanity controls, Representational Similarity Analysis and causal forward-hook ablation. Five headline findings emerged.
+
+First, three of four standard phonological probing tasks (voicing, orthographic transparency, syllable count) fail surface-feature sanity checks. Bangla voicing labels in the original stimulus set are recoverable from the first character of each word with $\geq 0.78$ F1 across all four models; orthographic and syllable probes do not improve over a five-feature character-statistic baseline. Apparent cross-lingual phonological encoding in prior work likely reflects character statistics or token identity rather than phonological structure.
+
+Second, the surviving task -- length-matched real-versus-pseudo word discrimination -- shows genuine cross-lingual transfer in two of the four models. BLOOM 7B1 reaches $0.92$ Bangla F1 ($+0.30$ over surface) and XLM-RoBERTa large reaches $0.86$ ($+0.24$ over surface). Llama 3.1 8B collapses to $0.63$ ($+0.01$) and mT5 XL collapses to $0.60$ ($-0.02$).
+
+Third, the determinant of transfer is the joint effect of pretraining objective and pretraining language coverage. The $0.56$B multilingual MLM-encoder (XLM-R) beats the $8$B English-heavy causal decoder (Llama) by more than two F1 points; depth and width do not compensate for pretraining-language gaps.
+
+Fourth, mT5 alone exhibits concentrated cross-lingual lexical coding. Causal forward-hook ablation across five encoder depths shows clean specificity ($+0.04$ to $+0.13$); two persistent backbone units (u782 and u1880) appear in the top-10 probe-ranked units at four out of five probed depths each. The mT5 mechanism is hybrid: a small persistent backbone plus layer-local specialised circuits.
+
+Fifth, the four models are not interchangeable. BLOOM is the practical substrate for raw cross-lingual transfer; mT5 is the interpretability substrate for mechanism studies; XLM-R is the parameter-efficient substrate for hardware-constrained deployments; Llama is not recommended for any cross-lingual Bangla setting at the lexical level.
+
+\section{Contributions to the Field}
+
+This thesis makes four contributions.
+
+\textbf{Methodological.} Surface-feature sanity checks (first-character lookup baseline; five-feature character-statistic baseline; 1:1 length matching) are shown to invalidate three of four standard phonological probing tasks. The check protocol generalises and is proposed as a minimum standard for any future probing of multilingual LLMs at the lexical / sub-lexical level.
+
+\textbf{Empirical.} The first surface-controlled, four-architecture, two-language (English / Bangla) probing study at the lexical level. Per-task, per-model, per-layer numbers are reported in CSV form alongside their plots, and the headline four-model and three-model comparison tables are committed to the public repository.
+
+\textbf{Mechanistic.} The mT5 cross-lingual lexical signal is localised to approximately ten encoder units; two units (u782, u1880) persist as a backbone across more than half of the probed encoder depths. To our knowledge, this is the first demonstration of concentrated cross-lingual lexical coding with a persistent unit backbone in a multilingual encoder-decoder.
+
+\textbf{Translational.} A model-selection recommendation grounded in surface-controlled performance, parameter efficiency and interpretability is issued: BLOOM 7B1 for practical low-resource Bangla screening prototypes, mT5 XL for interpretability, XLM-R for parameter-efficient deployments. The recommendation is bounded explicitly to ``substrate for downstream supervised prototypes'' and not to ``diagnostic tool.''
+
+\section{Recommendations for Future Work}
+
+Six concrete directions follow from these results.
+
+\begin{enumerate}
+    \item \textbf{Native-clinician supervision.} Before any of the recommended substrates is used on children, a supervised clinical pipeline must be built: stimulus selection by Bangla speech-and-language clinicians, validation against an existing diagnostic battery and longitudinal follow-up. The probing results in this thesis are a precondition, not a substitute, for that pipeline.
+
+    \item \textbf{Stimulus expansion.} The length-matched real-versus-pseudo word subset is $n = 50$ per language. Expanding to $n \geq 500$ matched pairs per language, with stratification by syllable count and morphological complexity, would reduce per-layer variance and support stronger ablation-specificity claims.
+
+    \item \textbf{Encoder-decoder confound.} mT5 is the only encoder-decoder probed. Replicating the depth-scan ablation on ByT5, T5 and a multilingual T5-style model trained without span corruption would isolate whether the localisation is driven by the objective, by the encoder-decoder split, or both.
+
+    \item \textbf{Mechanism follow-up on the two backbone units.} What information do u782 and u1880 actually carry? Stimulus-conditional firing analyses, ablation conjunctions (zeroing both units simultaneously versus singly) and sparse-autoencoder projection would localise the linguistic content of the persistent backbone.
+
+    \item \textbf{Language coverage.} The present study covers Bangla. Extending to Hindi, Tamil, Urdu and Swahili (all under-served languages, all in BLOOM's pretraining mix) would test whether the BLOOM transfer recipe generalises across South-Asian and African languages or is specific to Bangla.
+
+    \item \textbf{Clinical-task expansion.} The probing tasks in this thesis cover real-versus-pseudo word discrimination only after sanity checks. Future work should design surface-controlled probes for rapid automatised naming, non-word repetition and rhyme detection, which together constitute the full phonological-processing battery in CTOPP-2 and analogous clinical instruments.
+\end{enumerate}
+
+The longer arc is the same: low-resource clinical NLP can ride on frozen multilingual substrates if -- and only if -- the substrates are evaluated honestly. The sanity-check failure of three of four standard tasks reported here is, in that sense, the most useful single finding of the thesis: it tells the next study where the floor is.

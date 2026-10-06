@@ -1,0 +1,6 @@
+model,condition,n_units,measure_L,ablate_block,en_score,bn_score
+llama,baseline,0,11,8,1.0,0.3333333333333333
+llama,top5,5,11,8,1.0,0.3333333333333333
+llama,top10,10,11,8,1.0,0.3333333333333333
+llama,top20,20,11,8,1.0,0.3333333333333333
+llama,rand10,10,11,8,1.0,0.3333333333333333

@@ -1,0 +1,228 @@
+\section{Final Specifications and Requirements}
+
+The study is implemented as a frozen-model probing pipeline. The functional and technical requirements are as follows.
+
+\textbf{Data requirements.} A bilingual stimulus dataset of 440 items (220 English + 220 Bangla), distributed across seven phonological task categories (minimal pair, multisyllabic, pseudoword, real word, phoneme-grapheme, rhyme, sentence) with 18 metadata columns per row (Appendix~B, Table~\ref{tab:stim-distribution}). Bangla orthographic validity verified by a native speaker.
+
+\textbf{Model requirements.} Four publicly released multilingual LLMs loaded in their official pretrained form and frozen, with no parameter update: XLM-RoBERTa large (\texttt{xlm-roberta-large}), Llama 3.1 8B (\texttt{meta-llama/Llama-3.1-8B}), BLOOM 7B1 (\texttt{bigscience/bloom-7b1}) and mT5 XL (\texttt{google/mt5-xl}). The two 7--8B decoders require 4-bit quantised inference to fit a single consumer GPU, while XLM-R and the mT5 encoder run in 16-bit (see hardware requirements below). The full per-checkpoint configuration -- parameter count, layer count, hidden size, tokeniser and Bangla coverage -- is tabulated with the experimental setup in Chapter~4 (Table~\ref{tab:model-specs}) and is not repeated here.
+
+\textbf{Software requirements.} Python 3.10, PyTorch $\geq$ 2.1, Hugging Face \texttt{transformers} $\geq$ 4.40, \texttt{scikit-learn} for probes, \texttt{Unsloth} + \texttt{bitsandbytes} for 4-bit quantised inference on the 7--8B decoders, \texttt{sentence-transformers} for tokeniser utilities, \texttt{matplotlib} for plots, \texttt{pandas} and \texttt{numpy} for tabular ops. Full pinned versions in Appendix~A.
+
+\textbf{Hardware requirements.} One NVIDIA GPU with at least 24~GB VRAM for the 7--8B decoders under 4-bit quantisation; 16~GB VRAM is sufficient for XLM-R and mT5 encoder probing in 16-bit. All experiments in this thesis were run on a single RTX-class GPU; full hardware listing in Appendix~A.
+
+\textbf{Output / reproducibility requirements.} Every result table in Chapter~5 corresponds to a deterministic CSV file in the per-model results directory (\texttt{results\_*.csv}); every figure to a PNG file (\texttt{plots\_*.png}). Random seeds are fixed for probe training (\texttt{random\_state=42}) and ablation random-unit controls (three seeds). The 4-model comparison tables in Chapter~5 are emitted by \texttt{comparison\_four\_models.md} and its companion XLSX in the mT5 directory; the 3-model comparison is emitted by \texttt{comparison\_three\_models.md} in the BLOOM directory.
+
+\subsection*{Non-functional requirements}
+
+Beyond the functional requirements above, the pipeline is bound by four non-functional requirements. \textbf{Reproducibility:} every reported number must be regenerable from a committed CSV with a fixed seed, so the study is deterministic end to end. \textbf{Parameter and compute efficiency:} the method must run on a single consumer GPU without any model training, so that a low-resource setting can replicate it. \textbf{Methodological honesty:} every probe score must be reported against a surface-feature baseline (first-character lookup, character-length, character-statistic) so that gain-over-surface, not gain-over-chance, is the unit of evidence. \textbf{Portability:} the design must apply unchanged across all four model families and both languages from one shared 440-item stimulus set, so the comparison is controlled.
+
+\subsection*{Constraints}
+
+The study operates under four constraints. \textbf{Hardware:} a single 24~GB consumer GPU caps the 7--8B decoders to 4-bit quantised inference; no multi-GPU or full-precision run is available. \textbf{No training budget:} all models are used frozen and read-only under their published licences, so no fine-tuning, instruction-tuning or weight redistribution is possible. \textbf{Data scale:} the length-matched real-versus-pseudo word subset is small ($n = 50$ per language), which bounds the statistical resolution to point estimates rather than confidence intervals. \textbf{Label validity:} the original Bangla \texttt{voiced\_unvoiced} labels are recoverable from the first character, which constrains the voicing task to a surface readout and is the central sanity-check finding carried forward into Chapter~5.
+
+\section{Societal Impact}
+
+\subsection*{Intended societal benefit}
+
+The intended societal impact is to reduce the diagnostic gap for developmental dyslexia in low-resource languages. Bangla has more than 270 million speakers and no widely deployed normative dyslexia screener; the same gap exists for most of the world's languages. A surface-controlled probing study that identifies which multilingual LLM families carry transferable lexical structure is a precondition for building deployment prototypes that can flag children for clinical referral earlier and more equitably, without requiring per-language clinician hours. The recommendation that BLOOM 7B1 is the best practical substrate gives downstream builders a concrete starting point; the recommendation that mT5 is the best interpretability substrate gives researchers a concrete model in which the cross-lingual lexical mechanism is recoverable.
+
+The negative-societal-risk side requires care. A probing study \emph{is not} a clinical instrument. A model that achieves 0.92 F1 on length-matched real-versus-pseudo word discrimination cannot diagnose dyslexia; deploying it as if it could would produce false positives that stigmatise children and false negatives that delay support. The thesis is positioned explicitly as a methodological and mechanistic foundation, and Chapter~6 (Conclusion) specifies the supervised clinical follow-up required before any prototype is used on children.
+
+\subsection*{Health and safety implications}
+
+The health-and-safety implications follow directly from the bounded-claim discipline above. A misused screening prototype carries two distinct safety risks. First, a false-positive screening result can stigmatise a child, divert family and school resources to an unnecessary clinical referral, and create a labelling effect that depresses subsequent academic performance independent of any true reading difficulty. Second, a false-negative result can delay clinical attention by years; the developmental literature consistently finds that early intervention before age eight produces materially better long-term reading outcomes than later intervention, so a missed early flag translates into reduced lifelong literacy. The thesis is designed to mitigate both risks by (i) refusing to make a clinical claim and explicitly framing the deliverable as a substrate for downstream supervised prototypes, (ii) embedding the honest sanity-check failure of three of four standard tasks in the body of the work so that any downstream builder is forced to confront the surface-confound problem before deploying, and (iii) requiring a clinician-supervised validation pipeline before contact with children (specified in Chapter~6).
+
+\subsection*{Legal and regulatory considerations}
+
+No regulated medical-device claim is made or implied by this thesis. In Bangladesh, software intended for clinical screening of developmental disorders would fall under the Directorate General of Drug Administration (DGDA) regulatory remit if deployed as a diagnostic tool; the present work explicitly remains a pre-clinical methodology study and is therefore outside that scope. All probed models are used under their published licences (MIT/Apache 2.0 for XLM-R, Apache 2.0 for mT5, the Meta Llama 3.1 Community License Agreement for Llama 3.1 and the BigScience OpenRAIL-M License for BLOOM) in a read-only frozen-inference mode, and no model weights are redistributed. The 440-stimulus dataset is original and contains no participant data, no clinical records and no personally identifying information, so neither the Bangladesh Personal Data Protection Act nor the EU GDPR is triggered. Should the recommended BLOOM-based prototype be advanced toward clinical deployment in future work, a separate regulatory and IRB review will be required at that point.
+
+\subsection*{Cultural context}
+
+Bangla orthography is intermediate in depth: most consonant graphemes map regularly to their phonemes, but the writing system also relies heavily on conjunct characters (\textit{yuktoborno}) that combine two or three consonants into a single glyph in ways that do not transparently decompose to their phonological constituents. This produces a culturally specific reading-acquisition profile that is different from both the deep orthography of English and the shallow orthographies of European Romance languages. Any screening tool intended for Bangla children must respect this profile: in particular, conjunct handling, dialectal pronunciation differences between Standard Colloquial Bengali, Dhaka dialect and Kolkata dialect, and the cultural status of code-switching with English must all enter the design of stimulus items. The stimulus dataset built for this thesis (Appendix~B) is designed with native-speaker review specifically to respect these factors, and the recommendation in Chapter~6 that any clinical follow-up must be clinician- and clinician-supervised in Bangladesh is grounded in the cultural-specificity argument.
+
+\section{Environmental Impact}
+
+The compute footprint of this study is modest by current LLM standards. All models are frozen; no pretraining, no fine-tuning and no instruction tuning is performed. The dominant compute cost is the single forward pass per stimulus per model (440 items $\times$ four models), totalling under 30 GPU-hours on a single consumer GPU. The four-language coverage of the recommended substrate (BLOOM 7B1) is achieved without additional training, which is the central environmental argument for frozen multilingual probing over per-language fine-tuning: a single set of pretrained weights amortises the embodied carbon cost across many downstream languages and tasks. The methodology contribution -- surface-feature sanity checks that invalidate three of four standard tasks -- has a second-order environmental implication: future studies that adopt the checks will avoid spending compute on artefactual probes.
+
+\section{Ethical Issues}
+
+Four ethical considerations apply.
+
+\textbf{No human participants, no clinical data.} The 440-stimulus dataset is generated and verified for orthographic validity by the author and one native Bangla speaker. No participant data, no diagnostic record and no personally identifying information enters the pipeline.
+
+\textbf{Use of pretrained model weights.} All four model families are publicly released. Each was used in a frozen, read-only manner, with no redistribution of weights, in compliance with each model's published license (the individual licences are listed under ``Legal and regulatory considerations'' above).
+
+\textbf{Clinical-claim discipline.} No clinical claim is made in this thesis. The recommendation language in Chapter~6 is explicitly bounded to ``substrate for downstream supervised prototypes'' and never to ``diagnostic tool.''
+
+\textbf{Methodological transparency about the sanity-check finding.} Three of the four standard phonological probing tasks reported in prior work are shown to fail surface-feature controls in this thesis. The honest reporting of this negative result -- including the unflattering observation that 100\% of Bangla voicing labels in the original stimulus set are recoverable from the first character alone -- is itself an ethical requirement of the discipline and is preserved in Section~\ref{sec:sanity}.
+
+\section{Standards}
+
+The probing methodology follows the conventions of the probing-classifier literature \cite{conneau2018probing,belinkov2022probing,pimentel2020information}, including (i) per-layer linear probes with fixed train/test splits, (ii) chance baselines (majority-class for classification, mean predictor for regression), (iii) surface-feature baselines, (iv) random-unit ablation controls for causal-localisation claims. The IPA transcriptions in the stimulus dataset follow standard Bangla phonological conventions \cite{nag2014dyslexia}. The bibliography uses the IEEE numeric style. The codebase follows PEP-8 for Python and includes deterministic seeds and pinned dependency versions (Appendix~A).
+
+\section{Project Management Plan}
+
+The thesis was planned and executed over a one-year (two-semester) programme, organised into seven phases. Table~\ref{tab:timeline} gives the phase-by-phase timeline across the twelve months.
+
+\begin{table}[H]
+\centering
+\caption{One-year thesis timeline. Phases overlap at their boundaries; writing runs in parallel with the final analysis phases.}
+\label{tab:timeline}
+\small
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|>{\centering\arraybackslash}p{1.6cm}|>{\centering\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{9.5cm}|}
+\hline
+\textbf{Phase} & \textbf{Timeline} & \textbf{Key activities} \\
+\hline
+Phase 1 & Months 1--2 & Literature review, problem formulation and definition of the four research questions. \\
+\hline
+Phase 2 & Months 2--3 & Stimulus design and native-speaker verification of the 440-item English/Bangla dataset. \\
+\hline
+Phase 3 & Months 3--5 & Representation extraction across the four model families (frozen forward passes, per-layer hidden-state caching). \\
+\hline
+Phase 4 & Months 5--7 & Per-layer probing across the four tasks; English-only and cross-lingual evaluation; first result tables and plots. \\
+\hline
+Phase 5 & Months 7--8 & Surface-feature sanity checks; reframing of three of the four tasks; length-matched stimulus reconstruction and re-probing. \\
+\hline
+Phase 6 & Months 8--10 & Representational Similarity Analysis, causal forward-hook ablation, and the mT5 depth-and-overlap analysis. \\
+\hline
+Phase 7 & Months 10--12 & Thesis writing, figure preparation, internal review and defence preparation. \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Resources: one supervisor (Dr.\ Farig Yousuf Sadeque), one co-supervisor (Mr.\ Md.\ Tanzim Reza), four student investigators, one consumer GPU, and one native Bangla reviewer (for stimulus verification, $\sim$4 hours).
+
+\subsection*{Budget}
+
+Because the methodology relies on frozen on-device probing rather than model training or paid cloud APIs, the marginal compute cost of the study is negligible (BDT 120 in electricity; see the Economic Analysis in Section~\ref{sec:economic}). The remaining budget is dominated by student-side overheads typical of a one-year thesis. Table~\ref{tab:budget} itemises the estimated total budget in Bangladeshi Taka (BDT).
+
+\begin{table}[H]
+\centering
+\caption{Estimated one-year thesis budget (BDT). Compute is the smallest line item; the budget is dominated by connectivity and thesis-production overheads.}
+\label{tab:budget}
+\small
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{5.5cm}|>{\raggedright\arraybackslash}p{5.5cm}|>{\centering\arraybackslash}p{2.6cm}|}
+\hline
+\textbf{Item} & \textbf{Basis} & \textbf{Cost (BDT)} \\
+\hline
+GPU compute (electricity)        & 30 GPU-hours @ 350~W, BDT 11.5/kWh & 120 \\
+\hline
+Consumer GPU (amortised share)   & single 24~GB card, project share   & 5{,}000 \\
+\hline
+Native Bangla reviewer honorarium & $\sim$4 hours stimulus verification & 2{,}000 \\
+\hline
+Internet and connectivity        & 12 months                          & 6{,}000 \\
+\hline
+Literature and paper access      & reference materials                & 1{,}000 \\
+\hline
+Thesis printing and binding      & 3 hard copies                      & 3{,}000 \\
+\hline
+Miscellaneous and contingency    & $\sim$10\%                          & 1{,}880 \\
+\hline
+\textbf{Total}                   &                                    & \textbf{$\sim$19{,}000} \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The budget confirms the central economic claim of this thesis: surface-controlled frozen probing of shared multilingual substrates makes a credible low-resource study achievable on a student budget, with compute as the smallest single line item.
+
+\section{Risk Management}
+
+Five risks were identified and mitigated.
+
+\begin{enumerate}
+    \item \textbf{GPU memory exhaustion on 7--8B decoders.} Mitigated with 4-bit weight quantisation (Unsloth + bitsandbytes) and per-layer hidden-state offload to CPU between batches.
+    \item \textbf{Probe over-fitting to small stimulus splits.} Mitigated with L2-regularised logistic regression / ridge regression, fixed random seeds and explicit chance-baseline reporting.
+    \item \textbf{Surface confounds invalidating probing claims.} Mitigated by the first-character lookup baseline and the five-feature character-statistic baseline. This risk \emph{materialised} (three of four tasks failed), and the mitigation became the central methodology contribution.
+    \item \textbf{Tokeniser bias in Bangla length statistics.} Mitigated at the data-cleaning stage by deriving all length-based controls from the original Unicode string rather than the tokeniser output (Chapter~4).
+    \item \textbf{Encoder-decoder confounding in the localisation result.} mT5 is the only encoder-decoder probed; the localisation finding could in principle reflect either the span-corruption objective or the encoder-decoder split. Explicitly flagged in Section~\ref{sec:caveats} as an open architectural confound.
+\end{enumerate}
+
+\section{Economic Analysis}
+\label{sec:economic}
+
+The economic argument for frozen multilingual probing in low-resource settings is straightforward. The recurring cost of training a per-language dyslexia-screening model from scratch is roughly $O(\text{params} \times \text{tokens})$; the recurring cost of frozen probing on a pretrained multilingual model is roughly $O(\text{params} \times \text{stimuli})$, where stimuli are in the hundreds and tokens are in the trillions. The amortisation factor in favour of frozen probing is therefore on the order of $10^{8}$ for stimulus sets the size used here.
+
+\subsection*{Cost breakdown of this study}
+
+The full set of experiments in this thesis (4 models $\times$ 440 stimuli $\times$ per-layer extraction $\times$ probing $\times$ ablation) was executed at under 30 GPU-hours of consumer-grade compute, with no cloud-API expenditure. Table~\ref{tab:cost-breakdown} itemises the cost in three currencies that are commonly cited in low-resource NLP project planning: GPU-hours, electricity cost in BDT and cloud-API equivalent cost in USD assuming the same workload had been served via Hugging Face inference endpoints.
+
+\begin{table}[H]
+\centering
+\caption{Cost breakdown of the full DysLex-Probe pipeline. GPU-hours include representation extraction, probing, RSA and ablation across the four models. Electricity assumes 350~W average draw on a single consumer GPU at the Bangladesh residential rate of BDT 11.5/kWh. Cloud-API equivalent uses Hugging Face Inference Endpoints list pricing for comparable model classes.}
+\label{tab:cost-breakdown}
+\small
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{5.2cm}|>{\centering\arraybackslash}p{2.3cm}|>{\centering\arraybackslash}p{2.6cm}|>{\centering\arraybackslash}p{2.9cm}|}
+\hline
+\textbf{Pipeline stage} & \textbf{GPU-hours} & \textbf{Electricity (BDT)} & \textbf{Cloud-API equiv.\ (USD)} \\
+\hline
+Representation extraction (4 models, 440 stim)    & 16  & 64    & 110 \\
+\hline
+Per-layer probing (4 models, 4 tasks)             & 4   & 16    & --  \\
+\hline
+Surface-feature sanity checks                     & 1   & 4     & --  \\
+\hline
+RSA (4 models)                                    & 2   & 8     & --  \\
+\hline
+Causal ablation (4 models, single \texttt{measure\_L}) & 3 & 12  & --  \\
+\hline
+mT5 depth-scan ablation (5 depths $\times$ 3 seeds) & 4 & 16    & --  \\
+\hline
+\textbf{Total}                                    & \textbf{30}  & \textbf{$\sim$120}  & \textbf{$\sim$110} \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+In absolute terms the project's marginal cost is approximately BDT 120 in electricity plus the sunk cost of one consumer GPU (BDT $\sim$200{,}000 amortised across many projects). The cloud-API equivalent for the representation-extraction stage alone (the only stage that has an API analogue) is approximately USD 110, equivalent to roughly BDT 13{,}000. Frozen on-device probing is therefore an order of magnitude cheaper than the API-equivalent path for this specific workload.
+
+\subsection*{Cost-benefit comparison: BLOOM-based prototype vs.\ training from scratch}
+
+Table~\ref{tab:costbenefit-prototype} estimates the cost of building a downstream Bangla dyslexia screening prototype on top of the recommended BLOOM 7B1 substrate (frozen) and compares it against the cost of training a comparable Bangla-only model from scratch.
+
+\begin{table}[H]
+\centering
+\caption{Cost-benefit comparison: BLOOM-based frozen prototype vs.\ training a comparable Bangla-only model from scratch. All numbers are order-of-magnitude estimates intended for project-planning use.}
+\label{tab:costbenefit-prototype}
+\small
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\centering\arraybackslash}p{4.5cm}|>{\centering\arraybackslash}p{4.9cm}|}
+\hline
+\textbf{Item} & \textbf{BLOOM frozen prototype} & \textbf{Train Bangla model from scratch} \\
+\hline
+GPU-hours (one-time)         & $\sim$30           & $\sim$50{,}000 \\
+\hline
+Electricity (BDT, one-time)  & $\sim$120          & $\sim$200{,}000 \\
+\hline
+Cloud rental equivalent (USD) & $\sim$100          & $\sim$150{,}000 \\
+\hline
+Annotated training corpus    & not required       & $\geq 10^{10}$ Bangla tokens (not available) \\
+\hline
+Clinician hours              & required for items \& validation & required for items \& validation \\
+\hline
+Time to first prototype      & weeks              & months to years \\
+\hline
+Feasibility for a student team & high             & infeasible \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The cost-benefit ratio is roughly $10^{3}$ in favour of the frozen-prototype path on direct compute, and qualitatively infinite on data: the labelled Bangla corpus required to train a comparable model from scratch does not exist. The benefits of the frozen-prototype path (BLOOM 0.92 Bangla F1 on the surface-controlled real-versus-pseudo word task; Chapter~5) are obtained at a small fraction of the cost.
+
+\subsection*{Deployment cost}
+
+For a clinical pilot deployment, the BLOOM 7B1 substrate can be served in two ways. (i) On a single consumer-grade GPU ($\sim$BDT 200{,}000 capital cost, $\sim$BDT 30/hour electricity) with 4-bit quantisation, giving roughly 50 stimulus inferences per second. (ii) Via a cloud inference endpoint at roughly USD 0.50 per 1000 stimuli. For a pilot screening protocol of 50 items per child and a target of 1000 children per year, option (i) costs approximately BDT 1500/year in electricity, option (ii) costs approximately USD 25/year in API calls. Both are negligible relative to clinician time, which dominates the deployed cost of any screening programme.
+
+\subsection*{Recommendation}
+
+Low-resource clinical-NLP projects should default to frozen probing on shared multilingual substrates and only invest in fine-tuning or distillation after surface-controlled probing has confirmed that the candidate substrate carries transferable structure. For the Bangla dyslexia screening case specifically, the BLOOM frozen-prototype path dominates the train-from-scratch path on every economic axis examined here and is the recommended route to a first pilot deployment.

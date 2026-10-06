@@ -1,0 +1,176 @@
+%*******************************************************************
+%   Project: DysLex-Probe Thesis (BRAC University CSE400)
+%   
+%   Supervisor: Dr. Farig Sadeque
+%   Build with XeLaTeX (Bangla characters require fontspec, not inputenc)
+%*******************************************************************
+
+\documentclass[12pt,oneside,openany]{report}
+
+% ====================================================================
+%  DRAFT / FAST-COMPILE SWITCH  (helps avoid Overleaf compile timeouts)
+%
+%  \draftmodefalse  = FINAL build: full thesis, all images, bibliography
+%                     and Appendix B included. USE THIS FOR SUBMISSION.
+%  \draftmodetrue   = FAST build: images render as empty boxes, and the
+%                     bibliography and the heavy Bangla Appendix B are
+%                     skipped, so the document compiles in a fraction of
+%                     the time while you edit. Citations will show as [?]
+%                     and references to Appendix B stay unresolved; this
+%                     is expected in draft mode. Switch back to
+%                     \draftmodefalse before producing the final PDF.
+% ====================================================================
+\newif\ifdraftmode
+\draftmodefalse   % <-- set to \draftmodetrue to fast-compile while editing
+
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{xcolor}
+\pagestyle{plain}
+
+\ifdraftmode
+  \usepackage[draft]{graphicx}  % draft: skip image loading -> boxes only (fast)
+\else
+  \usepackage{graphicx}
+\fi
+\graphicspath{{images/}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{array}
+\usepackage{float}
+\usepackage{adjustbox}     % provides max width=... for tables
+\usepackage{tabularx}      % full-block tables that fill \textwidth and wrap
+% Full-block column types: Y = centred wrapping, L = left wrapping, R = right wrapping
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+\usepackage[nottoc]{tocbibind}
+
+\PassOptionsToPackage{hyphens}{url}  % allow long URLs to break at slashes/hyphens
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=black,
+    citecolor=black,
+}
+\urlstyle{same}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0.6em}
+
+% --- Prevent text from running outside the right margin (overfull \hbox) ---
+% Let TeX stretch tight lines a little instead of overflowing the margin.
+\setlength{\emergencystretch}{3em}
+% Long file/identifier names in \texttt{...} contain \_ which cannot break by
+% default; allow an invisible break opportunity after each underscore so paths
+% such as results\_mt5\_localization\_depth\_scan.csv wrap instead of overflowing.
+\renewcommand{\_}{\textunderscore\allowbreak}
+
+% Bangla font: Noto Serif Bengali has full conjunct (yuktoborno) coverage;
+% FreeSerif renders conjuncts as missing glyphs (the ??? problem). XeLaTeX's
+% native shaper handles Bengali ligatures with Script=Bengali. On Overleaf and TeX Live.
+\newfontfamily\banglafont[Script=Bengali]{Noto Serif Bengali}
+
+\usepackage{nomencl}
+\renewcommand{\nompreamble}{The next list describes symbols and abbreviations used in the body of this thesis.}
+\makenomenclature
+
+% Plain BibTeX (faster than biblatex+biber)
+\let\cleardoublepage=\clearpage
+
+\begin{document}
+
+\thispagestyle{empty}
+\input{core/titlepage}
+\cleardoublepage
+
+\pagenumbering{roman}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Declaration}
+\input{core/declaration}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Approval}
+\input{core/approval}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Ethics Statement}
+\input{core/ethics_statement}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Abstract}
+\input{core/abstract}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Dedication}
+\input{core/dedication}
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Acknowledgment}
+\input{core/acknowledgement}
+
+\renewcommand{\contentsname}{Table of Contents}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Table of Contents}
+\tableofcontents
+
+\listoffigures
+\listoftables
+
+\printnomenclature
+\addcontentsline{toc}{chapter}{Nomenclature}
+\cleardoublepage
+
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\input{chapters/chapter_1.tex}
+
+\chapter{Literature Review}
+\input{chapters/chapter_2.tex}
+
+\chapter{Requirements, Impacts and Constraints}
+\input{chapters/chapter_3.tex}
+
+\chapter{Proposed Methodology}
+\input{chapters/chapter_5.tex}
+
+\chapter{Result Analysis}
+\input{chapters/chapter_6.tex}
+
+\chapter{Conclusion}
+\input{chapters/chapter_9.tex}
+
+% Bibliography is skipped in draft mode (saves the BibTeX pass)
+\ifdraftmode\else
+\phantomsection
+\bibliographystyle{ieeetr}
+\bibliography{bibliography/references}
+\fi
+
+\newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix A: Tools, Software, Hardware and Reproducibility}
+\input{appendix/appendix_1}
+
+% Appendix B (heavy Bangla longtable, ~220 shaped rows) is skipped in draft mode
+\ifdraftmode\else
+\newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix B: Stimulus Categories and Sample Sizes}
+\input{appendix/appendix_2}
+\fi
+
+\end{document}
